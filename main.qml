@@ -176,7 +176,6 @@ ApplicationWindow {
                 }
             }
             footer: ItemDelegate {
-                id: addVault
                 width: parent.width
                 text: qsTr("Add Vault")
                 icon.source: "qrc:/images/add-fill.svg"
@@ -184,7 +183,16 @@ ApplicationWindow {
                 onClicked: {
                     addVaultDialog.open()
                 }
+                background: Rectangle {
+                    anchors.fill: parent
+                    color: Constant.secondaryBgColor
+                    border.color: Constant.borderColor
+                    anchors.leftMargin: -border.width
+                    anchors.rightMargin: -border.width
+                    anchors.bottomMargin: -border.width
+                }
             }
+            footerPositioning: ListView.OverlayFooter
         }
     }
 
