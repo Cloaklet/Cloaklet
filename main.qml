@@ -10,7 +10,7 @@ ApplicationWindow {
     visible: true
     width: 640
     height: 480
-    title: qsTr("Cloaklet")
+    title: Constant.appName
     flags: Qt.FramelessWindowHint
 
     function openDB() {
@@ -29,7 +29,7 @@ ApplicationWindow {
     header: ToolBar {
         id: titleBar
         background: Rectangle {
-            color: "#39A635"
+            color: Constant.mainColor
         }
         width: window.width
         height: 50
@@ -51,7 +51,7 @@ ApplicationWindow {
             spacing: 0
             Text {
                 text: Qt.application.displayName
-                color: "#ffffff"
+                color: Constant.bgColor
                 font.pointSize: 20
                 font.capitalization: Font.AllUppercase
                 font.weight: Font.Medium
@@ -65,7 +65,7 @@ ApplicationWindow {
                 Layout.preferredHeight: parent.height
                 Layout.alignment: Qt.AlignRight
                 icon.source: "qrc:/images/close-fill.svg"
-                icon.color: "#ffffff"
+                icon.color: Constant.bgColor
                 background: Rectangle {
                     color: "transparent"
                 }
@@ -74,7 +74,7 @@ ApplicationWindow {
                 }
                 hoverEnabled: true
                 onHoveredChanged: {
-                    icon.color = hovered ? "#e6e6e6" : "#ffffff"
+//                    icon.color = hovered ? "#e6e6e6" : Constant.bgColor
                 }
             }
         }
@@ -98,7 +98,7 @@ ApplicationWindow {
             anchors.leftMargin: -border.width
             anchors.topMargin: -border.width
             anchors.bottomMargin: -border.width
-            border.color: "#C4C4C4"
+            border.color: Constant.borderColor
         }
 
         ListView {
@@ -110,12 +110,12 @@ ApplicationWindow {
                 text: model.name
                 width: parent.width
                 icon.source: "qrc:/images/lock-fill.svg"
-                icon.color: highlighted ? "#39A635" : "#8C8C8C"
+                icon.color: highlighted ? Constant.mainColor : Constant.secondaryTextColor
                 highlighted: vaultList.currentVault.name === model.name
                 clip: true
                 background: Rectangle {
-                    color: parent.highlighted ? "#E6F3E6" : "white"
-                    border.color: "#39A635"
+                    color: parent.highlighted ? Constant.themedSelectionBgColor : Constant.bgColor
+                    border.color: Constant.mainColor
                     border.width: parent.highlighted ? 3 : 0
                     anchors.topMargin: -border.width
                     anchors.bottomMargin: -border.width

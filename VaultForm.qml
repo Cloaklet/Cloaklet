@@ -36,11 +36,11 @@ Page {
                 }
                 ColorOverlay {
                     source: vaultStateIcon
-                    color: "#ffffff"
+                    color: Constant.bgColor
                     anchors.fill: vaultStateIcon
                 }
 
-                color: "#39A635"
+                color: Constant.mainColor
                 radius: height
                 width: height
             }
@@ -59,7 +59,7 @@ Page {
                 Label {
                     id: pathLabel
                     text: ""
-                    color: "#8C8C8C"
+                    color: Constant.secondaryTextColor
                 }
             }
             Item {
@@ -74,9 +74,9 @@ Page {
                 font.capitalization: Font.AllUppercase
                 font.weight: Font.DemiBold
                 font.pointSize: 10
-                color: "#ffffff"
+                color: Constant.bgColor
                 background: Rectangle {
-                    color: "#8C8C8C"
+                    color: Constant.secondaryTextColor
                     radius: parent.height
                     anchors.fill: parent
                 }
@@ -88,13 +88,13 @@ Page {
             leftPadding: font.pixelSize * 1.4
             rightPadding: font.pixelSize * 1.4
             icon.source: "qrc:/images/key-2-fill.svg"
-            icon.color: "#ffffff"
-            text: '<font color="#ffffff">Unlock...</font>'
+            icon.color: Constant.bgColor
+            text: '<font color="#ffffff">Unlock...</font>'  // FIXME
             font.weight: Font.Medium
             font.pointSize: 18
             background: Rectangle {
-                color: "#39A635"
-                border.color: "#358A32"
+                color: Constant.mainColor
+                border.color: Constant.themedBorderColor
                 radius: 3
             }
         }

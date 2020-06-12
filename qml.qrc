@@ -15,5 +15,7 @@
         <file>images/settings-3-fill.svg</file>
         <file>images/lock-unlock-fill-inverted.svg</file>
         <file>images/lock-fill-inverted.svg</file>
+        <file>Constant.qml</file>
+        <file>qmldir</file>
     </qresource>
 </RCC>
