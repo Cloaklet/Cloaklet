@@ -72,7 +72,7 @@ Page {
                 id: vaultStateLabel
                 text: "locked"
                 font.capitalization: Font.AllUppercase
-                font.weight: Font.DemiBold
+                font.weight: Font.Bold
                 font.pointSize: 10
                 color: Constant.bgColor
                 background: Rectangle {

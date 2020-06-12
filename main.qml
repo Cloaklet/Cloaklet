@@ -53,7 +53,6 @@ ApplicationWindow {
                 text: Qt.application.displayName
                 color: Constant.bgColor
                 font.pointSize: 20
-                font.capitalization: Font.AllUppercase
                 font.weight: Font.Medium
                 Layout.alignment: Qt.AlignLeft
                 Layout.leftMargin: font.pixelSize

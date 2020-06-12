@@ -1,6 +1,9 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QFont>
+#include <QFontDatabase>
+#include <QDirIterator>
 
 #include "cursorposprovider.h"
 
@@ -12,6 +15,19 @@ int main(int argc, char *argv[])
 
     // FIXME
     app.setApplicationDisplayName(QStringLiteral("Cloaklet"));
+
+    // Load custom font
+    QDirIterator fonts(":/fonts");
+    int fontId;
+    while (fonts.hasNext()) {
+        QString fontFilename = fonts.next();
+        if (fontFilename.endsWith(".ttf")) {
+            fontId = QFontDatabase::addApplicationFont(fontFilename);
+            qDebug() << fontId;
+        }
+    }
+    QFont openSans(QFontDatabase::applicationFontFamilies(fontId).at(0));
+    app.setFont(openSans);
 
     CursorPosProvider mousePosProvider;
 

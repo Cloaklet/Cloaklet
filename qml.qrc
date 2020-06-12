@@ -17,5 +17,10 @@
         <file>images/lock-fill-inverted.svg</file>
         <file>Constant.qml</file>
         <file>qmldir</file>
+        <file>fonts/LICENSE.txt</file>
+        <file>fonts/OpenSans-Bold.ttf</file>
+        <file>fonts/OpenSans-Italic.ttf</file>
+        <file>fonts/OpenSans-Regular.ttf</file>
+        <file>fonts/OpenSans-SemiBold.ttf</file>
     </qresource>
 </RCC>
