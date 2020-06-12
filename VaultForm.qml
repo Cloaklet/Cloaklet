@@ -5,6 +5,11 @@ import QtGraphicalEffects 1.0
 
 Page {
     anchors.fill: parent
+    background: Rectangle {
+        color: Constant.secondaryBgColor
+        anchors.fill: parent
+    }
+
     // Update this page to show info about current selected vault
     signal currentVaultChanged(var currentVault)
     onCurrentVaultChanged: {

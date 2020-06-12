@@ -14,4 +14,5 @@ QtObject {
     property color themedSelectionBgColor: "#bbe1fa"
     property color secondaryTextColor: "#8C8C8C"
     property color bgColor: "#FFFFFF"
+    property color secondaryBgColor: "#F5F5F5"
 }
