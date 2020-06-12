@@ -119,9 +119,13 @@ ApplicationWindow {
             anchors.fill: parent
 
             delegate: ItemDelegate {
+                font.weight: Font.Medium
+                font.pointSize: 13
                 text: model.name
                 width: parent.width
                 icon.source: "qrc:/images/lock-fill.svg"
+                icon.height: font.pixelSize * 1.6
+                icon.width: font.pixelSize * 1.6
                 icon.color: highlighted ? Constant.mainColor : Constant.secondaryTextColor
                 highlighted: vaultList.currentVault.name === model.name
                 clip: true

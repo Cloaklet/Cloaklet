@@ -68,7 +68,9 @@ Page {
 
             Label {
                 Layout.alignment: Qt.AlignRight | Qt.AlignTop
-                padding: 5
+                padding: 2
+                leftPadding: 6
+                rightPadding: 6
                 id: vaultStateLabel
                 text: "locked"
                 font.capitalization: Font.AllUppercase
@@ -102,8 +104,8 @@ Page {
             Layout.alignment: Qt.AlignHCenter
             Layout.topMargin: -font.pixelSize * 1.2
             icon.source: "qrc:/images/settings-3-fill.svg"
-            icon.height: font.pixelSize
-            icon.width: font.pixelSize
+            icon.height: font.pixelSize * 1.2
+            icon.width: font.pixelSize * 1.2
             text: "Vault Options"
             background: Rectangle {
                 color: "transparent"

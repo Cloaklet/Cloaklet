@@ -6,11 +6,6 @@ Page {
         source: "qrc:/images/tray.svg"
         anchors.centerIn: parent
         fillMode: Image.PreserveAspectFit
-    }
-
-    Label {
-        text: qsTr("v0.0.1")
-        anchors.verticalCenterOffset: height * 3
-        anchors.centerIn: parent
+        sourceSize: Qt.size(parent.height * 0.6, parent.height * 0.6)
     }
 }
