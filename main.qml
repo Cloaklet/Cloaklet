@@ -233,7 +233,7 @@ ApplicationWindow {
         selectExisting: true
         onAccepted: {
             console.log("selected:", fileUrl)
-            var path = decodeURIComponent(folder.toString().replace(/^(file:\/{3})/, ""))
+            var path = decodeURIComponent(folder.toString().replace(/^(file:\/{2})/, ""))
             var dirname = path.slice(path.lastIndexOf("/") + 1)
             openDB().transaction(function(tx){
                 tx.executeSql(`INSERT INTO vaults VALUES (?, ?, ?)`, [dirname, path, JSON.stringify({})])
@@ -250,7 +250,7 @@ ApplicationWindow {
         selectFolder: true
         onAccepted: {
             console.log("selected:", folder)
-            var path = decodeURIComponent(folder.toString().replace(/^(file:\/{3})/, ""))
+            var path = decodeURIComponent(folder.toString().replace(/^(file:\/{2})/, ""))
             var dirname = path.slice(path.lastIndexOf("/") + 1)
             // FIXME Create new vault before inserting into database
             openDB().transaction(function(tx){
