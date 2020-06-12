@@ -61,6 +61,7 @@ ApplicationWindow {
 
             // Close button hides app window
             Button {
+                id: closeButton
                 Layout.preferredWidth: parent.height
                 Layout.preferredHeight: parent.height
                 Layout.alignment: Qt.AlignRight
@@ -72,10 +73,22 @@ ApplicationWindow {
                 onClicked: {
                     window.hide()
                 }
-                hoverEnabled: true
-                onHoveredChanged: {
-//                    icon.color = hovered ? "#e6e6e6" : Constant.bgColor
+                RotationAnimation on rotation {
+                    from: 0
+                    to: 90
+                    duration: 100
+                    // There might be a more reasonable way to reference properties of parent component,
+                    // which enables us to add animation to reusable components,
+                    // but I have yet to find it.
+                    running: closeButton.hovered
                 }
+                RotationAnimation on rotation {
+                    from: 90
+                    to: 0
+                    duration: 100
+                    running: !closeButton.hovered
+                }
+                hoverEnabled: true
             }
         }
     }
