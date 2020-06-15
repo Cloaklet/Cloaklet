@@ -34,9 +34,14 @@ This file contains a QML type named `MousePos` which provides `MousePos.pos()` s
 
 ## Build
 
-Run `qamel build` to build with the `default` profile. Run with `./Cloaklet`.
+`qamel build` to build with the `default` profile.
+Run with `./Cloaklet`. An application bundle is in plan.
 
-An application bundle is in plan.
+If the compiler complains about finding std library headers, you might need to set the Apple SDK path like this before running build command:
+
+```bash
+export SDKROOT="$(xcrun --sdk macosx --show-sdk-path)"
+```
 
 # License
 
