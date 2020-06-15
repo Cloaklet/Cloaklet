@@ -4,6 +4,7 @@ import QtQuick.LocalStorage 2.12
 import QtQuick.Dialogs 1.2 as Dialogs
 import Qt.labs.platform 1.1 as Platform
 import QtQuick.Layouts 1.15
+import MousePos 1.0
 
 ApplicationWindow {
     id: window
@@ -12,6 +13,10 @@ ApplicationWindow {
     height: 480
     title: Constant.appName
     flags: Qt.FramelessWindowHint
+
+    MousePos {
+        id: mousePos
+    }
 
     function openDB() {
         var db = LocalStorage.openDatabaseSync("info.mynook.Cloaklet", "1.0", "Cloaklet data", 1000000, function(db){
@@ -38,9 +43,10 @@ ApplicationWindow {
             property var clickPosition
             onPressed: {
                 clickPosition = { x: mouse.x, y: mouse.y }
+                console.log(mousePos.pos())
             }
             onPositionChanged: {
-                var currentPos = mousePosition.cursorPos()
+                var currentPos = mousePos.pos()
                 window.x = currentPos.x - clickPosition.x
                 window.y = currentPos.y - clickPosition.y
             }
@@ -64,7 +70,7 @@ ApplicationWindow {
                 Layout.preferredWidth: parent.height
                 Layout.preferredHeight: parent.height
                 Layout.alignment: Qt.AlignRight
-                icon.source: "qrc:/images/close-fill.svg"
+                icon.source: "qrc:/res/images/close-fill.svg"
                 icon.color: Constant.bgColor
                 background: Rectangle {
                     color: "transparent"
@@ -123,7 +129,7 @@ ApplicationWindow {
                 font.pointSize: 13
                 text: model.name
                 width: parent.width
-                icon.source: "qrc:/images/lock-fill.svg"
+                icon.source: "qrc:/res/images/lock-fill.svg"
                 icon.height: font.pixelSize * 1.6
                 icon.width: font.pixelSize * 1.6
                 icon.color: highlighted ? Constant.mainColor : Constant.secondaryTextColor
@@ -178,7 +184,7 @@ ApplicationWindow {
             footer: ItemDelegate {
                 width: parent.width
                 text: qsTr("Add Vault")
-                icon.source: "qrc:/images/add-fill.svg"
+                icon.source: "qrc:/res/images/add-fill.svg"
                 highlighted: addVaultDialog.visible
                 onClicked: {
                     addVaultDialog.open()
@@ -212,21 +218,21 @@ ApplicationWindow {
         title: qsTr("Add Vault")
         contentItem: Image {
             fillMode: Image.PreserveAspectFit
-            source: "qrc:/images/tray.svg"
+            source: "qrc:/res/images/tray.svg"
         }
         footer: DialogButtonBox {
             position: DialogButtonBox.Footer
             buttonLayout: DialogButtonBox.MacLayout
             Button {
                 text: qsTr("Create New Vault")
-                icon.source: "qrc:/images/magic-fill.svg"
+                icon.source: "qrc:/res/images/magic-fill.svg"
                 onClicked: {
                     createNewVault.open()
                 }
             }
             Button {
                 text: qsTr("Add Existing Vault")
-                icon.source: "qrc:/images/folder-5-fill.svg"
+                icon.source: "qrc:/res/images/folder-5-fill.svg"
                 onClicked: {
                     selectExistingVault.open()
                 }
@@ -272,7 +278,7 @@ ApplicationWindow {
 
     Platform.SystemTrayIcon {
         visible: true
-        icon.source: "qrc:/images/tray.svg"
+        icon.source: "qrc:/res/images/tray.svg"
         menu: Platform.Menu {
             Platform.MenuItem {
                 text: qsTr("Show")

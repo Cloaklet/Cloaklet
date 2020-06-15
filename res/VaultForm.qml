@@ -34,7 +34,7 @@ Page {
                 Layout.preferredWidth: parent.height
                 Image {
                     id: vaultStateIcon
-                    source: "qrc:/images/lock-fill-inverted.svg"
+                    source: "qrc:/res/images/lock-fill-inverted.svg"
                     sourceSize: Qt.size(parent.height * 0.6, parent.height * 0.6)
                     anchors.centerIn: parent
                     visible: false
@@ -94,7 +94,7 @@ Page {
             Layout.alignment: Qt.AlignHCenter
             leftPadding: font.pixelSize * 1.4
             rightPadding: font.pixelSize * 1.4
-            icon.source: "qrc:/images/key-2-fill.svg"
+            icon.source: "qrc:/res/images/key-2-fill.svg"
             icon.color: Constant.bgColor
             text: '<font color="#ffffff">Unlock...</font>'  // FIXME
             font.weight: Font.Medium
@@ -108,7 +108,7 @@ Page {
         Button {
             Layout.alignment: Qt.AlignHCenter
             Layout.topMargin: -font.pixelSize * 1.2
-            icon.source: "qrc:/images/settings-3-fill.svg"
+            icon.source: "qrc:/res/images/settings-3-fill.svg"
             icon.height: font.pixelSize * 1.2
             icon.width: font.pixelSize * 1.2
             text: "Vault Options"
