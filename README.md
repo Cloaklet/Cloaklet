@@ -1,7 +1,9 @@
 # Cloaklet
 
-Write some QML, wrap some encryption tool.
-Currently merely a UI prototype.
+A simple GUI app wrapping around [gocryptfs](https://github.com/rfjakob/gocryptfs).
+Currently usable on macOS.
+
+UI and interaction is mimicked from [Cryptomator](https://cryptomator.org/).
 
 # How to build
 
