@@ -105,8 +105,7 @@ Page {
             rightPadding: font.pixelSize * 1.4
             icon.source: "qrc:/res/images/key-2-fill.svg"
             icon.color: Constant.bgColor
-            // FIXME
-            text: vaultInfo.vault.unlocked ? '<font color="#ffffff">Lock...</font>' : '<font color="#ffffff">Unlock...</font>'
+            text: '<font color="'+Constant.bgColor+'">%2</font>'.arg((vaultInfo.vault.unlocked ? qsTr("Lock") : qsTr("Unlock")))
             font.weight: Font.Medium
             font.pointSize: 18
             background: Rectangle {
