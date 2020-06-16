@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
-	"strings"
 	"syscall"
 	"time"
 
@@ -68,12 +66,16 @@ func (vm *VaultManager) unlockVault(vaultPath string, password string) int {
 		"-passfile", pwFile.Name(),
 		vaultPath, mountPoint,
 	}
-	fmt.Printf("gocryptfs %s", strings.Join(args, " "))
 	vm.processes[vaultPath] = exec.Command("gocryptfs", args...)
 	vm.processes[vaultPath].Start()
 	// Seems to be necessary, otherwise the process becomes zombie after exiting.
-	go vm.processes[vaultPath].Wait()
-	if vm.processes[vaultPath].Process == nil {
+	go func() {
+		if err := vm.processes[vaultPath].Wait(); err != nil {
+			// TODO Read from stderr and display the error message to user
+			defer vm.vaultLocked(vaultPath)
+		}
+	}()
+	if vm.processes[vaultPath].ProcessState != nil {
 		return 5
 	}
 	defer vm.vaultUnlocked(vaultPath)
