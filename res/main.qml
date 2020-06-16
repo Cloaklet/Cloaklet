@@ -43,7 +43,6 @@ ApplicationWindow {
             property var clickPosition
             onPressed: {
                 clickPosition = { x: mouse.x, y: mouse.y }
-                console.log(mousePos.pos())
             }
             onPositionChanged: {
                 var currentPos = mousePos.pos()

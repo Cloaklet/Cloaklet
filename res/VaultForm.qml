@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.15
 import QtGraphicalEffects 1.0
 
 Page {
+    id: vaultInfo
     anchors.fill: parent
     background: Rectangle {
         color: Constant.secondaryBgColor
@@ -13,8 +14,13 @@ Page {
     // Update this page to show info about current selected vault
     signal currentVaultChanged(var currentVault)
     onCurrentVaultChanged: {
-        nameLabel.text = qsTr("Vault: %1").arg(currentVault.name)
-        pathLabel.text = currentVault.path
+        vault = currentVault
+    }
+
+    property var vault: ({})
+    function unlockVault(password) {
+        console.log("Mounting vault ", vault.path, "with password ", password)
+        // FIXME
     }
 
     ColumnLayout {
@@ -57,13 +63,13 @@ Page {
 //                Layout.maximumWidth: parent.width * 0.8
                 Label {
                     id: nameLabel
-                    text: ""
+                    text: qsTr("Vault: %1").arg(vaultInfo.vault.name)
                     font.weight: Font.Bold
                     font.pointSize: 18
                 }
                 Label {
                     id: pathLabel
-                    text: ""
+                    text: vaultInfo.vault.path || ""
                     color: Constant.secondaryTextColor
                 }
             }
@@ -104,6 +110,9 @@ Page {
                 border.color: Constant.themedBorderColor
                 radius: 3
             }
+            onClicked: {
+                unlockVaultDialog.open()
+            }
         }
         Button {
             Layout.alignment: Qt.AlignHCenter
@@ -114,6 +123,72 @@ Page {
             text: "Vault Options"
             background: Rectangle {
                 color: "transparent"
+            }
+        }
+    }
+
+    Dialog {
+        id: unlockVaultDialog
+        title: vaultInfo.vault.name || ""
+        modal: true
+        anchors.centerIn: Overlay.overlay
+        onClosed: {
+            vaultPassword.clear()
+        }
+
+        contentItem: Rectangle {
+            RowLayout {
+                anchors.fill: parent
+                Layout.preferredHeight: 120
+                Image {
+                    source: "qrc:/res/images/lock-fill.svg"
+                    Layout.preferredHeight: 80
+                    Layout.preferredWidth: 80
+                    Layout.alignment: Qt.AlignTop | Qt.AlignLeft
+                    Layout.rightMargin: 10
+                    sourceSize: Qt.size(Layout.preferredHeight, Layout.preferredWidth)
+                }
+                ColumnLayout {
+                    spacing: 5
+                    Label {
+                        id: unlockVaultDescription
+                        text: qsTr("Enter password for %1:").arg(vaultInfo.vault.name)
+                    }
+                    TextField {
+                        id: vaultPassword
+                        echoMode: TextInput.Password
+                        text: ""
+                        onVisibleChanged: {
+                            visible && forceActiveFocus()
+                        }
+                        Keys.onReturnPressed: {
+                            vaultInfo.unlockVault(text)
+                            unlockVaultDialog.close()
+                        }
+                    }
+                    RowLayout {
+                        spacing: 0
+                        Button {
+                            text: qsTr("Cancel")
+                            onClicked: {
+                                unlockVaultDialog.close()
+                            }
+                            Layout.alignment: Qt.AlignLeft
+                            hoverEnabled: true
+                            highlighted: hovered || activeFocus
+                        }
+                        Button {
+                            text: qsTr("Unlock")
+                            onClicked: {
+                                vaultInfo.unlockVault(vaultPassword.text)
+                                unlockVaultDialog.close()
+                            }
+                            Layout.alignment: Qt.AlignRight
+                            hoverEnabled: true
+                            highlighted: hovered || activeFocus
+                        }
+                    }
+                }
             }
         }
     }
