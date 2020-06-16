@@ -26,16 +26,15 @@ Page {
         }
     }
 
-    ColumnLayout {
+    Column {
         anchors.fill: parent
-        anchors.bottomMargin: parent.height * 0.6
-        spacing: 2
+        spacing: 60
+        padding: 20
 
+        // Vault information block
         RowLayout {
-            Layout.preferredHeight: font.pixelSize * 3
-            Layout.bottomMargin: font.pixelSize * 1
-            Layout.leftMargin: font.pixelSize * 2
-            Layout.rightMargin: font.pixelSize * 2
+            width: parent.width - parent.padding * 2
+            implicitHeight: font.pixelSize * 3
             spacing: 10
 
             Rectangle {
@@ -76,9 +75,6 @@ Page {
                     color: Constant.secondaryTextColor
                 }
             }
-            Item {
-                Layout.fillWidth: true
-            }
 
             Label {
                 Layout.alignment: Qt.AlignRight | Qt.AlignTop
@@ -92,47 +88,128 @@ Page {
                 font.pointSize: 10
                 color: Constant.bgColor
                 background: Rectangle {
-                    color: Constant.secondaryTextColor
+                    color: vaultInfo.vault.unlocked ? Constant.mainColor : Constant.secondaryTextColor
                     radius: parent.height
                     anchors.fill: parent
                 }
             }
         }
 
-        Button {
-            Layout.alignment: Qt.AlignHCenter
-            leftPadding: font.pixelSize * 1.4
-            rightPadding: font.pixelSize * 1.4
-            icon.source: "qrc:/res/images/key-2-fill.svg"
-            icon.color: Constant.bgColor
-            text: '<font color="'+Constant.bgColor+'">%2</font>'.arg((vaultInfo.vault.unlocked ? qsTr("Lock") : qsTr("Unlock")))
-            font.weight: Font.Medium
-            font.pointSize: 18
-            background: Rectangle {
-                color: Constant.mainColor
-                border.color: Constant.themedBorderColor
-                radius: 3
-            }
-            onClicked: {
-                if (vaultInfo.vault.unlocked) {
-                    var lockRC = vaultManager.lockVault(vaultInfo.vault.path)
-                    if (lockRC !== 0) {
-                        console.error("Lock failed: RC=", lockRC)
-                    }
-                } else {
+        // Vault operation buttons
+        ColumnLayout {
+            anchors.horizontalCenter: parent.horizontalCenter
+
+            Button {
+                Layout.alignment: Qt.AlignHCenter
+                leftPadding: font.pixelSize * 1.4
+                rightPadding: font.pixelSize * 1.4
+                icon.source: "qrc:/res/images/key-2-fill.svg"
+                icon.color: Constant.bgColor
+                text: '<font color="' + Constant.bgColor + '">%2</font>'.arg(qsTr("Unlock"))
+                font.weight: Font.Medium
+                font.pointSize: 18
+                background: Rectangle {
+                    color: Constant.mainColor
+                    border.color: Constant.themedBorderColor
+                    radius: 3
+                }
+                onClicked: {
                     unlockVaultDialog.open()
                 }
+                // Only display when the vault is locked
+                visible: !vaultInfo.vault.unlocked
             }
-        }
-        Button {
-            Layout.alignment: Qt.AlignHCenter
-            Layout.topMargin: -font.pixelSize * 1.2
-            icon.source: "qrc:/res/images/settings-3-fill.svg"
-            icon.height: font.pixelSize * 1.2
-            icon.width: font.pixelSize * 1.2
-            text: "Vault Options"
-            background: Rectangle {
-                color: "transparent"
+            Button {
+                Layout.alignment: Qt.AlignHCenter
+                icon.source: "qrc:/res/images/settings-3-fill.svg"
+                icon.height: font.pixelSize * 1.2
+                icon.width: font.pixelSize * 1.2
+                text: "Vault Options"
+                background: Rectangle {
+                    color: "transparent"
+                }
+                // Only display when the vault is locked
+                visible: !vaultInfo.vault.unlocked
+            }
+
+            Button {
+                Layout.alignment: Qt.AlignHCenter
+                leftPadding: font.pixelSize * 1.4
+                rightPadding: font.pixelSize * 1.4
+                Layout.preferredWidth: 210
+                Layout.preferredHeight: 60
+                contentItem: Rectangle {
+                    anchors.fill: parent
+                    color: Constant.mainColor
+                    radius: 3
+                    border.color: Constant.themedBorderColor
+                    RowLayout {
+                        anchors.fill: parent
+                        anchors.centerIn: parent
+                        anchors.leftMargin: 10
+                        Image {
+                            id: revealIcon
+                            source: "qrc:/res/images/hard-drive-fill-inverted.svg"
+                            sourceSize: Qt.size(40, 40)
+                            Layout.alignment: Qt.AlignVCenter
+                            visible: false
+                        }
+                        ColorOverlay {
+                            source: revealIcon
+                            color: Constant.bgColor
+                            Layout.alignment: Qt.AlignVCenter
+                            // Explicit size setting is required
+                            height: revealIcon.height
+                            width: revealIcon.width
+                        }
+                        ColumnLayout {
+                            Text {
+                                text: qsTr("Reveal Drive")
+                                color: Constant.bgColor
+                                font.pointSize: 18
+                                font.weight: Font.Medium
+                            }
+                            Text {
+                                id: vaultDrivePath
+                                text: qsTr("/tmp/xxx")
+                                color: Constant.bgColor
+                                font.pointSize: 12
+                            }
+                            Item {
+                                Layout.fillWidth: true
+                            }
+                        }
+                    }
+                }
+                onClicked: {
+                    // FIXME
+                }
+                // Only display when the vault is locked
+                visible: !!vaultInfo.vault.unlocked
+            }
+            Button {
+                Layout.alignment: Qt.AlignHCenter
+                leftPadding: font.pixelSize * 2
+                rightPadding: leftPadding
+                icon.source: "qrc:/res/images/key-2-fill.svg"
+                icon.height: font.pixelSize * 1.2
+                icon.width: font.pixelSize * 1.2
+                text: qsTr("Lock")
+                background: Rectangle {
+                    color: Constant.bgColor
+                    border.color: Constant.borderColor
+                    radius: 3
+                }
+                onClicked: {
+                    if (vaultInfo.vault.unlocked) {
+                        var lockRC = vaultManager.lockVault(vaultInfo.vault.path)
+                        if (lockRC !== 0) {
+                            console.error("Lock failed: RC=", lockRC)
+                        }
+                    }
+                }
+                // Only display when the vault is unlocked
+                visible: !!vaultInfo.vault.unlocked
             }
         }
     }
