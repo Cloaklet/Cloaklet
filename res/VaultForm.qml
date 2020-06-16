@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.15
 import QtGraphicalEffects 1.0
+import VaultManager 1.0
 
 Page {
     id: vaultInfo
@@ -9,6 +10,10 @@ Page {
     background: Rectangle {
         color: Constant.secondaryBgColor
         anchors.fill: parent
+    }
+
+    VaultManager {
+        id: vaultManager
     }
 
     // Update this page to show info about current selected vault
@@ -21,6 +26,8 @@ Page {
     function unlockVault(password) {
         console.log("Mounting vault ", vault.path, "with password ", password)
         // FIXME
+        var unlockRC = vaultManager.unlockVault(vault.path, password)
+        console.log("Unlock RC=", unlockRC)
     }
 
     ColumnLayout {

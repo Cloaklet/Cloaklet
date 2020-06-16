@@ -8,6 +8,7 @@ import (
 
 func init() {
 	RegisterQmlMousePos("MousePos", 1, 0, "MousePos")
+	RegisterQmlVaultManager("VaultManager", 1, 0, "VaultManager")
 }
 
 func main() {
