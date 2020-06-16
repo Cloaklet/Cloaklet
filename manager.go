@@ -71,6 +71,8 @@ func (vm *VaultManager) unlockVault(vaultPath string, password string) int {
 	fmt.Printf("gocryptfs %s", strings.Join(args, " "))
 	vm.processes[vaultPath] = exec.Command("gocryptfs", args...)
 	vm.processes[vaultPath].Start()
+	// Seems to be necessary, otherwise the process becomes zombie after exiting.
+	go vm.processes[vaultPath].Wait()
 	if vm.processes[vaultPath].Process == nil {
 		return 5
 	}
@@ -86,6 +88,7 @@ func (vm *VaultManager) lockVault(vaultPath string) int {
 			if err = cmd.Process.Signal(os.Interrupt); err != nil {
 				return 1
 			}
+			defer delete(vm.processes, vaultPath)
 		}
 	}
 	defer vm.vaultLocked(vaultPath)
