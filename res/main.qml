@@ -216,25 +216,28 @@ ApplicationWindow {
         implicitWidth: window.width * 0.8
         anchors.centerIn: Overlay.overlay
         title: qsTr("Add Vault")
-        contentItem: Image {
-            fillMode: Image.PreserveAspectFit
-            source: "qrc:/res/images/tray.svg"
-        }
-        footer: DialogButtonBox {
-            position: DialogButtonBox.Footer
-            buttonLayout: DialogButtonBox.MacLayout
-            Button {
-                text: qsTr("Create New Vault")
-                icon.source: "qrc:/res/images/magic-fill.svg"
-                onClicked: {
-                    createNewVault.open()
+        contentItem: Rectangle {
+            anchors.bottomMargin: 30
+            ColumnLayout {
+                anchors.fill: parent
+                spacing: 10
+                Button {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.preferredWidth: parent.width * 0.8
+                    text: qsTr("Create New Vault")
+                    icon.source: "qrc:/res/images/magic-fill.svg"
+                    onClicked: {
+                        createNewVault.open()
+                    }
                 }
-            }
-            Button {
-                text: qsTr("Add Existing Vault")
-                icon.source: "qrc:/res/images/folder-5-fill.svg"
-                onClicked: {
-                    selectExistingVault.open()
+                Button {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.preferredWidth: parent.width * 0.8
+                    text: qsTr("Add Existing Vault")
+                    icon.source: "qrc:/res/images/folder-5-fill.svg"
+                    onClicked: {
+                        selectExistingVault.open()
+                    }
                 }
             }
         }
