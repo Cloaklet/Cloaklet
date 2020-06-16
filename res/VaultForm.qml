@@ -2,7 +2,6 @@ import QtQuick 2.15
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.15
 import QtGraphicalEffects 1.0
-import VaultManager 1.0
 
 Page {
     id: vaultInfo
@@ -10,10 +9,6 @@ Page {
     background: Rectangle {
         color: Constant.secondaryBgColor
         anchors.fill: parent
-    }
-
-    VaultManager {
-        id: vaultManager
     }
 
     // Update this page to show info about current selected vault
@@ -24,10 +19,11 @@ Page {
 
     property var vault: ({})
     function unlockVault(password) {
-        console.log("Mounting vault ", vault.path, "with password ", password)
-        // FIXME
+        // TODO Failure notification
         var unlockRC = vaultManager.unlockVault(vault.path, password)
-        console.log("Unlock RC=", unlockRC)
+        if (unlockRC !== 0) {
+            console.error("Unlock failed: RC=", unlockRC)
+        }
     }
 
     ColumnLayout {
@@ -47,7 +43,7 @@ Page {
                 Layout.preferredWidth: parent.height
                 Image {
                     id: vaultStateIcon
-                    source: "qrc:/res/images/lock-fill-inverted.svg"
+                    source: vaultInfo.vault.unlocked ? "qrc:/res/images/lock-unlock-fill-inverted.svg" : "qrc:/res/images/lock-fill-inverted.svg"
                     sourceSize: Qt.size(parent.height * 0.6, parent.height * 0.6)
                     anchors.centerIn: parent
                     visible: false
@@ -90,7 +86,7 @@ Page {
                 leftPadding: 6
                 rightPadding: 6
                 id: vaultStateLabel
-                text: "locked"
+                text: vaultInfo.vault.unlocked ? "unlocked" : "locked"
                 font.capitalization: Font.AllUppercase
                 font.weight: Font.Bold
                 font.pointSize: 10
@@ -109,7 +105,8 @@ Page {
             rightPadding: font.pixelSize * 1.4
             icon.source: "qrc:/res/images/key-2-fill.svg"
             icon.color: Constant.bgColor
-            text: '<font color="#ffffff">Unlock...</font>'  // FIXME
+            // FIXME
+            text: vaultInfo.vault.unlocked ? '<font color="#ffffff">Lock...</font>' : '<font color="#ffffff">Unlock...</font>'
             font.weight: Font.Medium
             font.pointSize: 18
             background: Rectangle {
@@ -118,7 +115,14 @@ Page {
                 radius: 3
             }
             onClicked: {
-                unlockVaultDialog.open()
+                if (vaultInfo.vault.unlocked) {
+                    var lockRC = vaultManager.lockVault(vaultInfo.vault.path)
+                    if (lockRC !== 0) {
+                        console.error("Lock failed: RC=", lockRC)
+                    }
+                } else {
+                    unlockVaultDialog.open()
+                }
             }
         }
         Button {

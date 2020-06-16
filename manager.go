@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/go-qamel/qamel"
@@ -17,6 +18,8 @@ type VaultManager struct {
 	_         func()                   `constructor:"init"`
 	_         func(string, string) int `slot:"unlockVault"`
 	_         func(string) int         `slot:"lockVault"`
+	_         func(string)             `signal:"vaultUnlocked"`
+	_         func(string)             `signal:"vaultLocked"`
 	processes map[string]*exec.Cmd
 }
 
@@ -30,7 +33,8 @@ func (vm *VaultManager) init() {
 func (vm *VaultManager) unlockVault(vaultPath string, password string) int {
 	// FIXME
 	if cmd, ok := vm.processes[vaultPath]; ok {
-		if !cmd.ProcessState.Exited() {
+		// Existing process will return <nil> to SIG0
+		if err := cmd.Process.Signal(syscall.Signal(0)); err == nil {
 			return 1
 		}
 	}
@@ -70,18 +74,20 @@ func (vm *VaultManager) unlockVault(vaultPath string, password string) int {
 	if vm.processes[vaultPath].Process == nil {
 		return 5
 	}
+	defer vm.vaultUnlocked(vaultPath)
 	return 0
 }
 
 // lockVault stops the corresponding gocryptfs process, return code 0 means ok
 func (vm *VaultManager) lockVault(vaultPath string) int {
 	if cmd, ok := vm.processes[vaultPath]; ok {
-		if !cmd.ProcessState.Exited() {
-			// TODO Improve quiting
-			if err := cmd.Process.Signal(os.Interrupt); err != nil {
+		// Existing process will return <nil> to SIG0
+		if err := cmd.Process.Signal(syscall.Signal(0)); err == nil {
+			if err = cmd.Process.Signal(os.Interrupt); err != nil {
 				return 1
 			}
 		}
 	}
+	defer vm.vaultLocked(vaultPath)
 	return 0
 }

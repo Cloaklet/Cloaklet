@@ -5,6 +5,7 @@ import QtQuick.Dialogs 1.2 as Dialogs
 import Qt.labs.platform 1.1 as Platform
 import QtQuick.Layouts 1.15
 import MousePos 1.0
+import VaultManager 1.0
 
 ApplicationWindow {
     id: window
@@ -13,6 +14,31 @@ ApplicationWindow {
     height: 480
     title: Constant.appName
     flags: Qt.FramelessWindowHint
+
+    VaultManager {
+        id: vaultManager
+        onVaultUnlocked: (path) => {
+            for (var i = 0; i < vaultListModel.count; i ++) {
+                var item = vaultListModel.get(i)
+                if (item.path === path) {
+                    item.unlocked = true
+                    console.log("Vault", item.name, "unlocked")
+                    break
+                }
+            }
+
+        }
+        onVaultLocked: (path) => {
+            for (var i = 0; i < vaultListModel.count; i ++) {
+                var item = vaultListModel.get(i)
+                if (item.path === path) {
+                    item.unlocked = false
+                    console.log("Vault", item.name, "locked")
+                    break
+                }
+            }
+        }
+    }
 
     MousePos {
         id: mousePos
@@ -128,7 +154,7 @@ ApplicationWindow {
                 font.pointSize: 13
                 text: model.name
                 width: parent.width
-                icon.source: "qrc:/res/images/lock-fill.svg"
+                icon.source: model.unlocked ? "qrc:/res/images/lock-unlock-fill.svg" : "qrc:/res/images/lock-fill.svg"
                 icon.height: font.pixelSize * 1.6
                 icon.width: font.pixelSize * 1.6
                 icon.color: highlighted ? Constant.mainColor : Constant.secondaryTextColor
@@ -148,13 +174,10 @@ ApplicationWindow {
                     // If already showing vault info, do not change stackView
                     if (stackView.currentItem.objectName !== "vaultInfo") {
                         stackView.replace("VaultForm.qml", {objectName: "vaultInfo"}, StackView.Immediate)
+                        stackView.currentItem.onPaint
                     }
                     // Replacing key-value won't trigger onchange, we have to replace the whole property variable
-                    vaultList.currentVault = {
-                        name: model.name,
-                        path: model.path,
-                        mount_options: model.mount_options
-                    }
+                    vaultList.currentVault = model
                 }
             }
             onCurrentVaultChanged: {
@@ -174,7 +197,8 @@ ApplicationWindow {
                             append({
                                 name: row.name,
                                 path: row.path,
-                                mount_options: JSON.parse(row.mount_options)
+                                mount_options: JSON.parse(row.mount_options),
+                                unlocked: false
                             })
                         }
                     })
@@ -253,7 +277,7 @@ ApplicationWindow {
             var dirname = path.slice(path.lastIndexOf("/") + 1)
             openDB().transaction(function(tx){
                 tx.executeSql(`INSERT INTO vaults VALUES (?, ?, ?)`, [dirname, path, JSON.stringify({})])
-                vaultListModel.append({name: dirname, path: path, mount_options: "{}"})
+                vaultListModel.append({name: dirname, path: path, mount_options: "{}", unlocked: false})
                 console.log("Loaded vault from:", path)
                 addVaultDialog.close()
             })
@@ -271,7 +295,7 @@ ApplicationWindow {
             // FIXME Create new vault before inserting into database
             openDB().transaction(function(tx){
                 tx.executeSql(`INSERT INTO vaults VALUES (?, ?, ?)`, [dirname, path, JSON.stringify({})])
-                vaultListModel.append({name: dirname, path: path, mount_options: "{}"})
+                vaultListModel.append({name: dirname, path: path, mount_options: "{}", unlocked: false})
                 console.log("Loaded vault from:", path)
                 addVaultDialog.close()
             })
