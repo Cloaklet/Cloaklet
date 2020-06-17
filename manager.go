@@ -2,9 +2,11 @@ package main
 
 import (
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -28,6 +30,7 @@ type VaultManager struct {
 func (vm *VaultManager) init() {
 	vm.processes = map[string]*exec.Cmd{}
 	vm.mountpoints = map[string]string{}
+	rand.Seed(time.Now().UnixNano() + int64(os.Getpid()))
 }
 
 // unlockVault starts a gocryptfs process to unlock and mount the given vault.
@@ -42,10 +45,7 @@ func (vm *VaultManager) unlockVault(vaultPath string, password string) int {
 		}
 	}
 
-	mountPoint, err := ioutil.TempDir("", "")
-	if err != nil {
-		return 2
-	}
+	mountPoint := filepath.Join("/Volumes", strconv.FormatInt(int64(rand.Int31()), 16))
 
 	// Prepare password file
 	pwFile, err := ioutil.TempFile("", "")
