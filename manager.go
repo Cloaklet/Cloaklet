@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -101,7 +102,14 @@ func (vm *VaultManager) lockVault(vaultPath string) int {
 
 // revealVault reveals the encrypted vault in Finder
 func (vm *VaultManager) revealVault(vaultPath string) {
-	// FIXMe Check for existence
+	// Finder cannot show hidden items
+	if filepath.Base(vaultPath)[0] == "." {
+		return
+	}
+	// Path does not exist
+	if _, err := os.Stat(vaultPath); err != nil && os.IsNotExist(err) {
+		return
+	}
 	RevealInFinder(vaultPath)
 }
 
