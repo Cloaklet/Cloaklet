@@ -65,15 +65,49 @@ Page {
 //                Layout.maximumWidth: parent.width * 0.8
                 Label {
                     id: nameLabel
-                    text: qsTr("Vault: %1").arg(vaultInfo.vault.name)
+                    text: vaultInfo.vault.name || ""
                     font.weight: Font.Bold
                     font.pointSize: 18
                 }
-                Label {
-                    id: pathLabel
-                    text: vaultInfo.vault.path || ""
-                    color: Constant.secondaryTextColor
+
+                // Vault path label
+                // Clicking reveals current vault in Finder
+                Button {
+                    hoverEnabled: true
+                    Layout.preferredHeight: font.pixelSize * 1.4
+                    Layout.preferredWidth: pathLabel.contentWidth + vaultRevealIcon.width
+                    contentItem: Rectangle {
+                        color: Constant.secondaryBgColor
+                        anchors.fill: parent
+                        Row {
+                            anchors.verticalCenter: parent.verticalCenter
+                            spacing: 10
+                            Text {
+                                id: pathLabel
+                                text: vaultInfo.vault.path || ""
+                                color: Constant.secondaryTextColor
+                            }
+                            Image {
+                                id: vaultRevealIcon
+                                source: "qrc:/res/images/eye-fill.svg"
+                                visible: false
+                                sourceSize: Qt.size(width, height)
+                            }
+                            ColorOverlay {
+                                source: vaultRevealIcon
+                                color: Constant.secondaryTextColor
+                                width: vaultRevealIcon.width
+                                height: vaultRevealIcon.height
+                                visible: parent.parent.parent.hovered
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
+                        }
+                    }
+                    onClicked: {
+                        vaultManager.revealVault(vaultInfo.vault.path)
+                    }
                 }
+
             }
 
             Label {

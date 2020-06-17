@@ -16,6 +16,8 @@ type VaultManager struct {
 	_         func()                   `constructor:"init"`
 	_         func(string, string) int `slot:"unlockVault"`
 	_         func(string) int         `slot:"lockVault"`
+	_         func(string)             `slot:"revealVault"`
+	_         func(string)             `slot:"revealMountPoint"`
 	_         func(string)             `signal:"vaultUnlocked"`
 	_         func(string)             `signal:"vaultLocked"`
 	processes map[string]*exec.Cmd
@@ -95,4 +97,15 @@ func (vm *VaultManager) lockVault(vaultPath string) int {
 	}
 	defer vm.vaultLocked(vaultPath)
 	return 0
+}
+
+// revealVault reveals the encrypted vault in Finder
+func (vm *VaultManager) revealVault(vaultPath string) {
+	// FIXMe Check for existence
+	RevealInFinder(vaultPath)
+}
+
+// revealMountPoint reveals the decrypted mountpoint in Finder for given `vaultPath`
+func (vm *VaultManager) revealMountPoint(vaultPath string) {
+	// FIXME
 }
