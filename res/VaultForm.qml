@@ -205,7 +205,7 @@ Page {
                             }
                             Text {
                                 id: vaultDrivePath
-                                text: qsTr("/tmp/xxx")
+                                text: vaultInfo.vault.mountpoint || ""
                                 color: Constant.bgColor
                                 font.pointSize: 12
                             }

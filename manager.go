@@ -21,7 +21,7 @@ type VaultManager struct {
 	_           func(string) int         `slot:"lockVault"`
 	_           func(string)             `slot:"revealVault"`
 	_           func(string)             `slot:"revealMountPoint"`
-	_           func(string)             `signal:"vaultUnlocked"`
+	_           func(string, string)     `signal:"vaultUnlocked"`
 	_           func(string)             `signal:"vaultLocked"`
 	processes   map[string]*exec.Cmd
 	mountpoints map[string]string
@@ -84,7 +84,7 @@ func (vm *VaultManager) unlockVault(vaultPath string, password string) int {
 	if vm.processes[vaultPath].ProcessState != nil {
 		return 5
 	}
-	defer vm.vaultUnlocked(vaultPath)
+	defer vm.vaultUnlocked(vaultPath, mountPoint)
 	return 0
 }
 

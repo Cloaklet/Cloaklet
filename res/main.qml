@@ -17,12 +17,13 @@ ApplicationWindow {
 
     VaultManager {
         id: vaultManager
-        onVaultUnlocked: (path) => {
+        onVaultUnlocked: (path, mountpoint) => {
             for (var i = 0; i < vaultListModel.count; i ++) {
                 var item = vaultListModel.get(i)
                 if (item.path === path) {
                     item.unlocked = true
-                    console.log("Vault", item.name, "unlocked")
+                    item.mountpoint = mountpoint
+                    console.log("Vault", item.name, "unlocked, mountpoint:", mountpoint)
                     break
                 }
             }
@@ -33,6 +34,7 @@ ApplicationWindow {
                 var item = vaultListModel.get(i)
                 if (item.path === path) {
                     item.unlocked = false
+                    item.mountpoint = ""
                     console.log("Vault", item.name, "locked")
                     break
                 }
@@ -198,7 +200,8 @@ ApplicationWindow {
                                 name: row.name,
                                 path: row.path,
                                 mount_options: JSON.parse(row.mount_options),
-                                unlocked: false
+                                unlocked: false,
+                                mountpoint: ""
                             })
                         }
                     })
@@ -277,7 +280,7 @@ ApplicationWindow {
             var dirname = path.slice(path.lastIndexOf("/") + 1)
             openDB().transaction(function(tx){
                 tx.executeSql(`INSERT INTO vaults VALUES (?, ?, ?)`, [dirname, path, JSON.stringify({})])
-                vaultListModel.append({name: dirname, path: path, mount_options: "{}", unlocked: false})
+                vaultListModel.append({name: dirname, path: path, mount_options: "{}", unlocked: false, mountpoint: ""})
                 console.log("Loaded vault from:", path)
                 addVaultDialog.close()
             })
@@ -295,7 +298,7 @@ ApplicationWindow {
             // FIXME Create new vault before inserting into database
             openDB().transaction(function(tx){
                 tx.executeSql(`INSERT INTO vaults VALUES (?, ?, ?)`, [dirname, path, JSON.stringify({})])
-                vaultListModel.append({name: dirname, path: path, mount_options: "{}", unlocked: false})
+                vaultListModel.append({name: dirname, path: path, mount_options: "{}", unlocked: false, mountpoint: ""})
                 console.log("Loaded vault from:", path)
                 addVaultDialog.close()
             })
