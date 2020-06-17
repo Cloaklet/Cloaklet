@@ -64,7 +64,6 @@ Page {
                 Layout.minimumWidth: 200
 //                Layout.maximumWidth: parent.width * 0.8
                 Label {
-                    id: nameLabel
                     text: vaultInfo.vault.name || ""
                     font.weight: Font.Bold
                     font.pointSize: 18
@@ -115,7 +114,6 @@ Page {
                 padding: 2
                 leftPadding: 6
                 rightPadding: 6
-                id: vaultStateLabel
                 text: vaultInfo.vault.unlocked ? "unlocked" : "locked"
                 font.capitalization: Font.AllUppercase
                 font.weight: Font.Bold
@@ -182,19 +180,19 @@ Page {
                         anchors.centerIn: parent
                         anchors.leftMargin: 10
                         Image {
-                            id: revealIcon
+                            id: driveRevealIcon
                             source: "qrc:/res/images/hard-drive-fill-inverted.svg"
                             sourceSize: Qt.size(40, 40)
                             Layout.alignment: Qt.AlignVCenter
                             visible: false
                         }
                         ColorOverlay {
-                            source: revealIcon
+                            source: driveRevealIcon
                             color: Constant.bgColor
                             Layout.alignment: Qt.AlignVCenter
                             // Explicit size setting is required
-                            height: revealIcon.height
-                            width: revealIcon.width
+                            height: driveRevealIcon.height
+                            width: driveRevealIcon.width
                         }
                         ColumnLayout {
                             Text {
@@ -204,7 +202,6 @@ Page {
                                 font.weight: Font.Medium
                             }
                             Text {
-                                id: vaultDrivePath
                                 text: vaultInfo.vault.mountpoint || ""
                                 color: Constant.bgColor
                                 font.pointSize: 12
@@ -272,7 +269,6 @@ Page {
                 ColumnLayout {
                     spacing: 5
                     Label {
-                        id: unlockVaultDescription
                         text: qsTr("Enter password for %1:").arg(vaultInfo.vault.name)
                     }
                     TextField {
