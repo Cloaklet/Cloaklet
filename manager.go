@@ -14,18 +14,20 @@ import (
 // VaultManager manages vault unlocking / locking. It does not manage vault information storage.
 type VaultManager struct {
 	qamel.QmlObject
-	_         func()                   `constructor:"init"`
-	_         func(string, string) int `slot:"unlockVault"`
-	_         func(string) int         `slot:"lockVault"`
-	_         func(string)             `slot:"revealVault"`
-	_         func(string)             `slot:"revealMountPoint"`
-	_         func(string)             `signal:"vaultUnlocked"`
-	_         func(string)             `signal:"vaultLocked"`
-	processes map[string]*exec.Cmd
+	_           func()                   `constructor:"init"`
+	_           func(string, string) int `slot:"unlockVault"`
+	_           func(string) int         `slot:"lockVault"`
+	_           func(string)             `slot:"revealVault"`
+	_           func(string)             `slot:"revealMountPoint"`
+	_           func(string)             `signal:"vaultUnlocked"`
+	_           func(string)             `signal:"vaultLocked"`
+	processes   map[string]*exec.Cmd
+	mountpoints map[string]string
 }
 
 func (vm *VaultManager) init() {
 	vm.processes = map[string]*exec.Cmd{}
+	vm.mountpoints = map[string]string{}
 }
 
 // unlockVault starts a gocryptfs process to unlock and mount the given vault.
@@ -70,6 +72,7 @@ func (vm *VaultManager) unlockVault(vaultPath string, password string) int {
 		vaultPath, mountPoint,
 	}
 	vm.processes[vaultPath] = exec.Command("gocryptfs", args...)
+	vm.mountpoints[vaultPath] = mountPoint
 	vm.processes[vaultPath].Start()
 	// Seems to be necessary, otherwise the process becomes zombie after exiting.
 	go func() {
@@ -93,6 +96,7 @@ func (vm *VaultManager) lockVault(vaultPath string) int {
 			if err = cmd.Process.Signal(os.Interrupt); err != nil {
 				return 1
 			}
+			defer delete(vm.mountpoints, vaultPath)
 			defer delete(vm.processes, vaultPath)
 		}
 	}
@@ -103,7 +107,7 @@ func (vm *VaultManager) lockVault(vaultPath string) int {
 // revealVault reveals the encrypted vault in Finder
 func (vm *VaultManager) revealVault(vaultPath string) {
 	// Finder cannot show hidden items
-	if filepath.Base(vaultPath)[0] == "." {
+	if filepath.Base(vaultPath)[0] == '.' {
 		return
 	}
 	// Path does not exist
@@ -115,5 +119,9 @@ func (vm *VaultManager) revealVault(vaultPath string) {
 
 // revealMountPoint reveals the decrypted mountpoint in Finder for given `vaultPath`
 func (vm *VaultManager) revealMountPoint(vaultPath string) {
-	// FIXME
+	if mountPoint, ok := vm.mountpoints[vaultPath]; ok {
+		if _, err := os.Stat(mountPoint); err == nil {
+			RevealInFinder(mountPoint)
+		}
+	}
 }

@@ -216,7 +216,7 @@ Page {
                     }
                 }
                 onClicked: {
-                    // FIXME
+                    vaultManager.revealMountPoint(vaultInfo.vault.path)
                 }
                 // Only display when the vault is locked
                 visible: !!vaultInfo.vault.unlocked
