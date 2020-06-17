@@ -268,6 +268,116 @@ ApplicationWindow {
             }
         }
     }
+    Dialog {
+        id: createNewVault
+        modal: true
+        anchors.centerIn: Overlay.overlay
+        title: qsTr("Create New Vault")
+        contentItem: Rectangle {
+            anchors.margins: 20
+            GridLayout {
+                anchors.fill: parent
+                columns: 3
+
+                Label {
+                    text: qsTr("Name:")
+                }
+                TextField {
+                    id: newVaultNameField
+                    onVisibleChanged: {
+                        visible && forceActiveFocus()
+                    }
+                    Layout.columnSpan: 2
+                }
+
+                Label {
+                    text: qsTr("Location:")
+                }
+                TextField {
+                    id: newVaultLocationField
+                    readOnly: true
+                }
+                Button {
+                    icon.source: "qrc:/res/images/folder-5-fill.svg"
+                    onClicked: {
+                        selectNewVaultDirectory.open()
+                    }
+                    Layout.preferredWidth: font.pixelSize * 4
+                }
+
+                Label {
+                    text: qsTr("Password:")
+                }
+                TextField {
+                    id: newVaultPasswordField
+                    echoMode: TextField.Password
+                    Layout.columnSpan: 2
+                }
+
+                Label {}  // This is just a placeholder to push button to 2nd column
+                Button {
+                    text: qsTr("Create Vault")
+                    onClicked: {
+                        // Form validation
+                        var name = newVaultNameField.text.trim()
+                        if (!name) {
+                            newVaultFormValidationMsg.text = qsTr("Please provide a name for this vault")
+                            return newVaultFormValidationMsg.open()
+                        }
+
+                        var location = newVaultLocationField.text.trim()
+                        if (!location) {
+                            newVaultFormValidationMsg.text = qsTr("Please select a location to store this vault")
+                            return newVaultFormValidationMsg.open()
+                        }
+
+                        var password = newVaultPasswordField.text
+                        if (!password) {
+                            newVaultFormValidationMsg.text = qsTr("Please provide a password for this vault")
+                            return newVaultFormValidationMsg.open()
+                        }
+
+                        // Create vault
+                        enabled = false
+                        var createRC = vaultManager.createNewVault(name, location, password)
+                        if (createRC !== 0) {
+                            newVaultFormValidationMsg.text = qsTr("Vault creation failed, return code: %1").arg(createRC)
+                            enabled = true
+                            return newVaultFormValidationMsg.open()
+                        }
+
+                        // Store vault info
+                        openDB().transaction(function(tx){
+                            var path = location+"/"+name
+                            tx.executeSql(`INSERT INTO vaults VALUES (?, ?, ?)`, [name, path, JSON.stringify({})])
+                            vaultListModel.append({name: name, path: path, mount_options: "{}", unlocked: false, mountpoint: ""})
+                            console.log("Vault created:", path)
+
+                            // Reset form
+                            newVaultNameField.clear()
+                            newVaultLocationField.clear()
+                            newVaultPasswordField.clear()
+                            newVaultFormValidationMsg.text = ""
+                            enabled = true
+
+                            // Hide dialogs
+                            createNewVault.close()
+                            addVaultDialog.close()
+                        })
+                    }
+                }
+
+            }
+
+        }
+        // This dialog pops up when the "new vault" form failed to validate
+        Dialogs.MessageDialog {
+            id: newVaultFormValidationMsg
+            title: qsTr("Oops")
+        }
+    }
+
+    // Dialog to select an existing gocryptfs vault
     Dialogs.FileDialog {
         id: selectExistingVault
         title: qsTr("Load vault from selected GoCryptFS config file")
@@ -286,22 +396,17 @@ ApplicationWindow {
             })
         }
     }
+    // Dialog to create a gocryptfs vault in selected directory
     Dialogs.FileDialog {
-        id: createNewVault
+        id: selectNewVaultDirectory
         title: qsTr("Create new vault inside selected directory")
         folder: shortcuts.documents
         selectFolder: true
+        selectExisting: true
         onAccepted: {
             console.log("selected:", folder)
             var path = decodeURIComponent(folder.toString().replace(/^(file:\/{2})/, ""))
-            var dirname = path.slice(path.lastIndexOf("/") + 1)
-            // FIXME Create new vault before inserting into database
-            openDB().transaction(function(tx){
-                tx.executeSql(`INSERT INTO vaults VALUES (?, ?, ?)`, [dirname, path, JSON.stringify({})])
-                vaultListModel.append({name: dirname, path: path, mount_options: "{}", unlocked: false, mountpoint: ""})
-                console.log("Loaded vault from:", path)
-                addVaultDialog.close()
-            })
+            newVaultLocationField.text = path
         }
     }
 

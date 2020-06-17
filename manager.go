@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -16,13 +19,14 @@ import (
 // VaultManager manages vault unlocking / locking. It does not manage vault information storage.
 type VaultManager struct {
 	qamel.QmlObject
-	_           func()                   `constructor:"init"`
-	_           func(string, string) int `slot:"unlockVault"`
-	_           func(string) int         `slot:"lockVault"`
-	_           func(string)             `slot:"revealVault"`
-	_           func(string)             `slot:"revealMountPoint"`
-	_           func(string, string)     `signal:"vaultUnlocked"`
-	_           func(string)             `signal:"vaultLocked"`
+	_           func()                           `constructor:"init"`
+	_           func(string, string) int         `slot:"unlockVault"`
+	_           func(string) int                 `slot:"lockVault"`
+	_           func(string)                     `slot:"revealVault"`
+	_           func(string)                     `slot:"revealMountPoint"`
+	_           func(string, string, string) int `slot:"createNewVault"`
+	_           func(string, string)             `signal:"vaultUnlocked"`
+	_           func(string)                     `signal:"vaultLocked"`
 	processes   map[string]*exec.Cmd
 	mountpoints map[string]string
 }
@@ -124,4 +128,52 @@ func (vm *VaultManager) revealMountPoint(vaultPath string) {
 			RevealInFinder(mountPoint)
 		}
 	}
+}
+
+// createNewVault creates a vault named `name` in `location` using `password`
+// Currently the masterkey is not printed, please remember your password.
+func (vm *VaultManager) createNewVault(name string, location string, password string) int {
+	// Create vault directory
+	vaultDirectory := filepath.Join(location, name)
+	info, err := os.Stat(vaultDirectory)
+	// An existing file is blocking us from creating the vault directory
+	if err == nil && !info.IsDir() {
+		return 1
+	}
+	if err != nil && os.IsNotExist(err) {
+		if err = os.MkdirAll(vaultDirectory, 0700); err != nil {
+			// FIXME Logging
+			return 5
+		}
+	}
+	// Prepare password file
+	pwFile, err := ioutil.TempFile("", "")
+	if err != nil {
+		return 2
+	}
+
+	// TODO gocryptfs seems to be using passfile longer than we expected
+	// Just delay for several seconds before deleting it.
+	defer os.Remove(pwFile.Name())
+
+	written, err := pwFile.Write([]byte(password))
+	defer pwFile.Close()
+	if written != len(password) || err != nil {
+		return 3
+	}
+
+	args := []string{
+		"-init",
+		"-passfile", pwFile.Name(),
+		vaultDirectory,
+	}
+	fmt.Printf("gocryptfs %s", strings.Join(args, " "))
+	ctx, cancel := context.WithTimeout(context.TODO(), time.Second*10)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "gocryptfs", args...)
+	if err := cmd.Run(); err != nil {
+		// FIXME Logging
+		return 4
+	}
+	return 0
 }
