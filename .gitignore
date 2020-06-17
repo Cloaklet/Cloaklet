@@ -53,6 +53,6 @@ compile_commands.json
 
 # OS-related stuff
 .DS_Store
-/Cloaklet
-/qamel-cgo-main.go
-/qamel-rcc.cpp
+Cloaklet
+qamel-*
+moc-qamel-*
