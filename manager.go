@@ -29,11 +29,26 @@ type VaultManager struct {
 	_           func(string)                     `signal:"vaultLocked"`
 	processes   map[string]*exec.Cmd
 	mountpoints map[string]string
+	cmd         string // Path to `gocryptfs` binary
 }
 
 func (vm *VaultManager) init() {
 	vm.processes = map[string]*exec.Cmd{}
 	vm.mountpoints = map[string]string{}
+
+	if executable, err := os.Executable(); err == nil {
+		cmdBin := filepath.Join(filepath.Dir(executable), "gocryptfs")
+		if _, err := os.Stat(cmdBin); os.IsNotExist(err) {
+			cmdBin, err = exec.LookPath("gocryptfs")
+			if err != nil {
+				logger.Fatal().Err(err).Msg("Failed to find gocryptfs binary")
+			}
+		}
+		vm.cmd = cmdBin
+		logger.Info().Str("binary", cmdBin).Msg("Found gocryptfs binary")
+	} else {
+		logger.Fatal().Err(err).Msg("Failed to get executable directory")
+	}
 	rand.Seed(time.Now().UnixNano() + int64(os.Getpid()))
 }
 
@@ -41,7 +56,6 @@ func (vm *VaultManager) init() {
 // The vault will be mounted to a path with random directory name.
 // Return code 0 means ok.
 func (vm *VaultManager) unlockVault(vaultPath string, password string) int {
-	// FIXME
 	if cmd, ok := vm.processes[vaultPath]; ok {
 		// Existing process will return <nil> to SIG0
 		if err := cmd.Process.Signal(syscall.Signal(0)); err == nil {
@@ -75,7 +89,7 @@ func (vm *VaultManager) unlockVault(vaultPath string, password string) int {
 		"-passfile", pwFile.Name(),
 		vaultPath, mountPoint,
 	}
-	vm.processes[vaultPath] = exec.Command("gocryptfs", args...)
+	vm.processes[vaultPath] = exec.Command(vm.cmd, args...)
 	vm.mountpoints[vaultPath] = mountPoint
 	vm.processes[vaultPath].Start()
 	// Seems to be necessary, otherwise the process becomes zombie after exiting.
@@ -142,7 +156,10 @@ func (vm *VaultManager) createNewVault(name string, location string, password st
 	}
 	if err != nil && os.IsNotExist(err) {
 		if err = os.MkdirAll(vaultDirectory, 0700); err != nil {
-			// FIXME Logging
+			logger.Error().
+				Err(err).
+				Str("vaultDirectory", vaultDirectory).
+				Msg("Failed to create vault directory")
 			return 5
 		}
 	}
@@ -151,9 +168,6 @@ func (vm *VaultManager) createNewVault(name string, location string, password st
 	if err != nil {
 		return 2
 	}
-
-	// TODO gocryptfs seems to be using passfile longer than we expected
-	// Just delay for several seconds before deleting it.
 	defer os.Remove(pwFile.Name())
 
 	written, err := pwFile.Write([]byte(password))
@@ -167,12 +181,16 @@ func (vm *VaultManager) createNewVault(name string, location string, password st
 		"-passfile", pwFile.Name(),
 		vaultDirectory,
 	}
-	fmt.Printf("gocryptfs %s", strings.Join(args, " "))
+	fmt.Printf("%s %s", vm.cmd, strings.Join(args, " "))
 	ctx, cancel := context.WithTimeout(context.TODO(), time.Second*10)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, "gocryptfs", args...)
+	cmd := exec.CommandContext(ctx, vm.cmd, args...)
 	if err := cmd.Run(); err != nil {
-		// FIXME Logging
+		logger.Error().
+			Err(err).
+			Str("vaultDirectory", vaultDirectory).
+			Int("returnCode", cmd.ProcessState.ExitCode()).
+			Msg("gocryptfs process exited with error")
 		return 4
 	}
 	return 0
