@@ -4,6 +4,7 @@ import QtQuick.LocalStorage 2.12
 import QtQuick.Dialogs 1.2 as Dialogs
 import Qt.labs.platform 1.1 as Platform
 import QtQuick.Layouts 1.15
+import QtGraphicalEffects 1.15
 import MousePos 1.0
 import VaultManager 1.0
 
@@ -39,6 +40,9 @@ ApplicationWindow {
                     break
                 }
             }
+        }
+        onAlert: (msg) => {
+            alertMessageText.text = msg
         }
     }
 
@@ -425,4 +429,58 @@ ApplicationWindow {
             }
         }
     }
+    // Global alert, like toast on Android
+    Popup {
+        id: alert
+        visible: false
+        padding: 0
+        x: parent.width - width
+        y: parent.height - height
+        rightMargin: 20
+        bottomMargin: 20
+        closePolicy: Popup.NoAutoClose
+        background: Item {
+            Rectangle {
+                color: Constant.mainColor
+                anchors.fill: parent
+                id: alertBackground
+            }
+            DropShadow {
+                anchors.fill: parent
+                source: alertBackground
+                radius: 6
+                smooth: true
+                color: Constant.themedBorderColor
+            }
+        }
+
+        // Alert message automatically times out
+        Timer {
+            id: timeout
+            repeat: false
+            interval: 3000
+            onTriggered: {
+                alert.close()
+                alertMessageText.text = ""
+            }
+        }
+
+        contentItem: Text {
+            id: alertMessageText
+            color: Constant.secondaryBgColor
+            font.pointSize: 16
+            anchors.fill: parent
+            text: ""
+            padding: font.pixelSize / 3
+            leftPadding: font.pixelSize
+            rightPadding: font.pixelSize
+            onTextChanged: {
+                if (text.length > 0) {
+                    alert.open()
+                    timeout.restart()
+                }
+            }
+        }
+    }
+
 }

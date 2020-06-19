@@ -21,6 +21,7 @@ import (
   Signals (events):
   - vaultUnlocked(vaultPath, mountPoint)
   - vaultLocked(vaultPath)
+  - alert(message)
   Slots (methods available to Javascript):
   - unlockVault(vaultPath, password)
   - lockVault(vaultPath)
@@ -40,6 +41,7 @@ type VaultManager struct {
 	_           func() bool                      `slot:"fuseAvailable"`
 	_           func(string, string)             `signal:"vaultUnlocked"`
 	_           func(string)                     `signal:"vaultLocked"`
+	_           func(string)                     `signal:"alert"`
 	processes   map[string]*exec.Cmd
 	mountpoints map[string]string
 	cmd         string // Path to `gocryptfs` binary
