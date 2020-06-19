@@ -25,6 +25,9 @@ func Clean() error {
 	if err := sh.Rm("gocryptfs"); err != nil {
 		return err
 	}
+	if err := sh.Rm("vendor"); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -61,13 +64,13 @@ func InstallDeps() error {
 
 // Build builds the main binary
 func Build() error {
-	mg.Deps(InstallDeps, Clean)
+	mg.SerialDeps(Clean, InstallDeps)
 	return sh.RunV("qamel", "build", "--skip-vendoring", "-o", "Cloaklet")
 }
 
 // BuildBundle builds the redistributable application bundle
 func BuildBundle() error {
-	mg.Deps(InstallDeps, Clean, Build)
+	mg.SerialDeps(Clean, InstallDeps, Build)
 	os.MkdirAll("Cloaklet.app/Contents/MacOS", 0755)
 	os.Rename("Cloaklet", "Cloaklet.app/Contents/MacOS/Cloaklet")
 	sh.RunV("cp", "Info.plist", "Cloaklet.app/Contents/Info.plist")
