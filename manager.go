@@ -17,6 +17,18 @@ import (
 )
 
 // VaultManager manages vault unlocking / locking. It does not manage vault information storage.
+/*
+  Signals (events):
+  - vaultUnlocked(vaultPath, mountPoint)
+  - vaultLocked(vaultPath)
+  Slots (methods available to Javascript):
+  - unlockVault(vaultPath, password)
+  - lockVault(vaultPath)
+  - revealVault(vaultPath)
+  - revealMountPoint(vaultPath)
+  - createNewVault(name, location, password)
+  - fuseAvailable()
+*/
 type VaultManager struct {
 	qamel.QmlObject
 	_           func()                           `constructor:"init"`
@@ -25,6 +37,7 @@ type VaultManager struct {
 	_           func(string)                     `slot:"revealVault"`
 	_           func(string)                     `slot:"revealMountPoint"`
 	_           func(string, string, string) int `slot:"createNewVault"`
+	_           func() bool                      `slot:"fuseAvailable"`
 	_           func(string, string)             `signal:"vaultUnlocked"`
 	_           func(string)                     `signal:"vaultLocked"`
 	processes   map[string]*exec.Cmd
@@ -194,4 +207,13 @@ func (vm *VaultManager) createNewVault(name string, location string, password st
 		return 4
 	}
 	return 0
+}
+
+// fuseAvailable tells if FUSE for Mac (a.k.a. OSXFUSE) is installed
+func (vm *VaultManager) fuseAvailable() bool {
+	const loadBin string = "/Library/Filesystems/osxfuse.fs/Contents/Resources/load_osxfuse"
+	if info, err := os.Stat(loadBin); err == nil {
+		return !info.IsDir()
+	}
+	return false
 }
