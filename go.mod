@@ -9,4 +9,5 @@ replace github.com/go-qamel/qamel v0.0.0-20191127141103-72f913c4bdc9 => github.c
 require (
 	github.com/go-qamel/qamel v0.0.0-20191127141103-72f913c4bdc9
 	github.com/rs/zerolog v1.19.0
+	github.com/magefile/mage v1.9.0
 )
