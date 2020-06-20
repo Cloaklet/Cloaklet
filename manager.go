@@ -125,10 +125,13 @@ func (vm *VaultManager) unlockVault(vaultPath string, password string) int {
 	go func() {
 		if err := vm.processes[vaultPath].Wait(); err != nil {
 			// TODO Read from stderr and display the error message to user
+			defer delete(vm.processes, vaultPath)
 			rc := vm.processes[vaultPath].ProcessState.ExitCode()
 			logger.Debug().Int("RC", rc).Msg("gocryptfs exited")
 			if rc == 12 {
 				vm.alert("Password incorrect")
+			} else if rc == 15 {
+				// gocryptfs interrupted by SIGINT, which means we locked this vault
 			} else {
 				vm.alert(fmt.Sprintf("gocryptfs exited unexpectedly (code %d)", rc))
 			}
@@ -156,7 +159,6 @@ func (vm *VaultManager) lockVault(vaultPath string) int {
 				return 1
 			}
 			defer delete(vm.mountpoints, vaultPath)
-			defer delete(vm.processes, vaultPath)
 		}
 	}
 	defer vm.vaultLocked(vaultPath)
