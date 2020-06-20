@@ -219,21 +219,41 @@ ApplicationWindow {
                     })
                 }
             }
-            footer: ItemDelegate {
+            footer: RowLayout {
                 width: parent.width
-                text: qsTr("Add Vault")
-                icon.source: "qrc:/res/images/add-fill.svg"
-                highlighted: addVaultDialog.visible
-                onClicked: {
-                    addVaultDialog.open()
+                spacing: 0
+                Button {
+                    Layout.fillWidth: true
+                    icon.source: "qrc:/res/images/add-fill.svg"
+                    ToolTip.text: qsTr("Add Vault")
+                    ToolTip.visible: hovered
+                    onClicked: {
+                        addVaultDialog.open()
+                    }
+                    background: Rectangle {
+                        anchors.fill: parent
+                        color: Constant.secondaryBgColor
+                        border.color: Constant.borderColor
+                        anchors.leftMargin: -border.width
+                        anchors.rightMargin: -border.width
+                        anchors.bottomMargin: -border.width
+                    }
                 }
-                background: Rectangle {
-                    anchors.fill: parent
-                    color: Constant.secondaryBgColor
-                    border.color: Constant.borderColor
-                    anchors.leftMargin: -border.width
-                    anchors.rightMargin: -border.width
-                    anchors.bottomMargin: -border.width
+                Button {
+                    Layout.fillWidth: true
+                    icon.source: "qrc:/res/images/subtract-fill.svg"
+                    ToolTip.text: qsTr("Remove Vault")
+                    ToolTip.visible: hovered
+                    onClicked: {
+                    }
+                    background: Rectangle {
+                        anchors.fill: parent
+                        color: Constant.secondaryBgColor
+                        border.color: Constant.borderColor
+                        anchors.leftMargin: -border.width
+                        anchors.rightMargin: -border.width
+                        anchors.bottomMargin: -border.width
+                    }
                 }
             }
             footerPositioning: ListView.OverlayFooter
