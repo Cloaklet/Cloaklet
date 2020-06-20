@@ -19,12 +19,16 @@ You should have the following tools installed:
 ## Setup qamel profile
 
 - Run `brew info qt5` to print the caveats for the installed Qt5 formula. What we need is the path to Qt tools, typically located at `/usr/local/opt/qt/bin`.
-- Run `qamel profile setup` to setup the `default` profile, it will ask you for path of each tool, use these:
+- Run `qamel profile setup` to setup the **default** profile, it will ask you for path of each tool, use these:
   - For Qt tools dir, use the one you got from `brew info qt5`
   - For C compiler, use `/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang`
   - For C++ compiler, use `/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++`
 
-## Generate moc headers
+## Build for development
+
+When building for development it's not necessary to create an application bundle, instead we just need a executable binary file. The binary file alone is fast to compile thus saves a lot of time.
+
+### Generate moc headers
 
 Qt's moc (Meta Object Compiler) is used to generate a header file specific to the `pos.h` file.
 This file contains a QML type named `MousePos` which provides `MousePos.pos()` slot to effeciently get current cursor coordinates.
@@ -34,10 +38,16 @@ This file contains a QML type named `MousePos` which provides `MousePos.pos()` s
 /usr/local/opt/qt/bin/moc -o moc-pos.h pos.h
 ```
 
-## Build
+### Build the binary
 
 `qamel build` to build with the `default` profile.
-Run with `./Cloaklet`. An application bundle is in plan.
+Run with `./Cloaklet`.
+
+## Build for release
+
+Just run `go run build.go buildBundle`, it should do all the building and bundling stuff and generates `Cloaklet.app` bundle. Double click it to start the app.
+
+## Notice
 
 If the compiler complains about finding std library headers, you might need to set the Apple SDK path like this before running build command:
 
