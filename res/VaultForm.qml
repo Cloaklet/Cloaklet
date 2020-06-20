@@ -149,7 +149,7 @@ Page {
                     unlockVaultDialog.open()
                 }
                 // Only display when the vault is locked
-                visible: !vaultInfo.vault.unlocked
+                visible: vaultManager.fuseAvailable && !vaultInfo.vault.unlocked
             }
             Button {
                 Layout.alignment: Qt.AlignHCenter

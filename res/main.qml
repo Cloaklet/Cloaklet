@@ -62,6 +62,14 @@ ApplicationWindow {
         console.info("DB opened:", db)
         return db
     }
+    Component.onCompleted: {
+        if (!vaultManager.fuseAvailable) {
+            alertMessageText.text = qsTr("OSXFUSE is required: https://osxfuse.github.io/")
+            alertTimeout.stop()
+        } else {
+            alertMessageText.text = qsTr("Ready")
+        }
+    }
 
     header: ToolBar {
         id: titleBar
@@ -456,7 +464,7 @@ ApplicationWindow {
 
         // Alert message automatically times out
         Timer {
-            id: timeout
+            id: alertTimeout
             repeat: false
             interval: 3000
             onTriggered: {
@@ -477,7 +485,7 @@ ApplicationWindow {
             onTextChanged: {
                 if (text.length > 0) {
                     alert.open()
-                    timeout.restart()
+                    alertTimeout.restart()
                 }
             }
         }
