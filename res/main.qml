@@ -248,6 +248,24 @@ ApplicationWindow {
                     ToolTip.text: qsTr("Remove Vault")
                     ToolTip.visible: hovered
                     onClicked: {
+                        if (vaultList.currentVault.path) {
+                            for (var i = 0, j = vaultListModel.count; i < j; i ++) {
+                                if (vaultListModel.get(i).path === vaultList.currentVault.path) {
+                                    openDB().transaction(function(tx){
+                                        var rows = tx.executeSql(`DELETE FROM vaults WHERE path = ?`, [vaultList.currentVault.path]).rowsAffected
+                                        if (rows === 1) {
+                                            vaultListModel.remove(i)
+                                            vaultList.currentVault = {}
+                                        } else {
+                                            showAlert(qsTr("Failed: %1 rows affected").arg(rows))
+                                        }
+                                    })
+                                    break
+                                }
+                            }
+                        } else {
+                            showAlert(qsTr("No vault selected"))
+                        }
                     }
                     background: Rectangle {
                         anchors.fill: parent
