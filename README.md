@@ -30,12 +30,13 @@ When building for development it's not necessary to create an application bundle
 
 ### Generate moc headers
 
-Qt's moc (Meta Object Compiler) is used to generate a header file specific to the `pos.h` file.
-This file contains a QML type named `MousePos` which provides `MousePos.pos()` slot to effeciently get current cursor coordinates.
+Qt's moc (Meta Object Compiler) is used to generate a header file specific to the `extend.h` file.
+This file provides some extended functionality via CGO, including a QML type named `MousePos`
+ which provides `MousePos.pos()` slot to effeciently get current cursor coordinates.
 
 ```bash
-# This will generate "moc-pos.h" file
-/usr/local/opt/qt/bin/moc -o moc-pos.h pos.h
+# This will generate "moc-extend.h" file
+/usr/local/opt/qt/bin/moc -o moc-extend.h extend.h
 ```
 
 ### Build the binary
