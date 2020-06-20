@@ -42,7 +42,7 @@ ApplicationWindow {
             }
         }
         onAlert: (msg) => {
-            alertMessageText.text = msg
+            showAlert(msg)
         }
     }
 
@@ -62,12 +62,15 @@ ApplicationWindow {
         console.info("DB opened:", db)
         return db
     }
+    function showAlert(msg) {
+        alertMessageText.text = msg
+    }
     Component.onCompleted: {
         if (!vaultManager.fuseAvailable) {
-            alertMessageText.text = qsTr("OSXFUSE is required: https://osxfuse.github.io/")
+            showAlert(qsTr("OSXFUSE is required: https://osxfuse.github.io/"))
             alertTimeout.stop()
         } else {
-            alertMessageText.text = qsTr("Ready")
+            showAlert(qsTr("Ready"))
         }
     }
 
