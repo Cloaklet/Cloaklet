@@ -52,6 +52,7 @@ func (vm *VaultManager) init() {
 	vm.processes = map[string]*exec.Cmd{}
 	vm.mountpoints = map[string]string{}
 
+	// Find gocryptfs binary
 	if executable, err := os.Executable(); err == nil {
 		cmdBin := filepath.Join(filepath.Dir(executable), "gocryptfs")
 		if _, err := os.Stat(cmdBin); os.IsNotExist(err) {
@@ -86,6 +87,7 @@ func (vm *VaultManager) unlockVault(vaultPath string, password string) int {
 	if cmd, ok := vm.processes[vaultPath]; ok {
 		// Existing process will return <nil> to SIG0
 		if err := cmd.Process.Signal(syscall.Signal(0)); err == nil {
+			vm.alert("Vault already unlocked")
 			return 1
 		}
 	}
@@ -123,10 +125,21 @@ func (vm *VaultManager) unlockVault(vaultPath string, password string) int {
 	go func() {
 		if err := vm.processes[vaultPath].Wait(); err != nil {
 			// TODO Read from stderr and display the error message to user
+			rc := vm.processes[vaultPath].ProcessState.ExitCode()
+			logger.Debug().Int("RC", rc).Msg("gocryptfs exited")
+			if rc == 12 {
+				vm.alert("Password incorrect")
+			} else {
+				vm.alert(fmt.Sprintf("gocryptfs exited unexpectedly (code %d)", rc))
+			}
 			defer vm.vaultLocked(vaultPath)
 		}
 	}()
 	if vm.processes[vaultPath].ProcessState != nil {
+		vm.alert(fmt.Sprintf(
+			"gocryptfs exited too soon (code %d)",
+			vm.processes[vaultPath].ProcessState.ExitCode(),
+		))
 		return 5
 	}
 	defer vm.vaultUnlocked(vaultPath, mountPoint)
@@ -139,6 +152,7 @@ func (vm *VaultManager) lockVault(vaultPath string) int {
 		// Existing process will return <nil> to SIG0
 		if err := cmd.Process.Signal(syscall.Signal(0)); err == nil {
 			if err = cmd.Process.Signal(os.Interrupt); err != nil {
+				vm.alert("Vault already locked")
 				return 1
 			}
 			defer delete(vm.mountpoints, vaultPath)
