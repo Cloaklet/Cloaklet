@@ -3,7 +3,7 @@
 package main
 
 import (
-	"errors"
+	"fmt"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"io"
@@ -65,34 +65,57 @@ func InstallDeps() error {
 // Build builds the main binary
 func Build() error {
 	mg.SerialDeps(Clean, InstallDeps)
-	return sh.RunV("qamel", "build", "--skip-vendoring", "-o", "Cloaklet")
-}
-
-// BuildBundle builds the redistributable application bundle
-func BuildBundle() error {
-	mg.SerialDeps(Clean, InstallDeps, Build)
-	os.MkdirAll("Cloaklet.app/Contents/MacOS", 0755)
-	os.Rename("Cloaklet", "Cloaklet.app/Contents/MacOS/Cloaklet")
-	sh.RunV("cp", "Info.plist", "Cloaklet.app/Contents/Info.plist")
-	// Get path of Qt tools directory from qamel profile
-	profileContent, err := sh.Output("qamel", "profile", "print")
+	// Generate Qt moc header
+	qtMocBin, err := findInQamelProfile("moc")
 	if err != nil {
 		return err
 	}
-	qtToolsDir := ""
+	if err = sh.RunV(qtMocBin, "-o", "moc-extend.h", "extend.h"); err != nil {
+		return err
+	}
+	// Build the binary
+	return sh.RunV("qamel", "build", "--skip-vendoring", "-o", "Cloaklet")
+}
+
+// findInQamelProfile interprets qamel profile output and finds value of given key
+// Notice: `key` is lowercase; Space characters in result is trimmed.
+func findInQamelProfile(key string) (v string, err error) {
+	var profileContent string
+	key = strings.ToLower(key)
+	profileContent, err = sh.Output("qamel", "profile", "print")
+	if err != nil {
+		return
+	}
 	for _, line := range strings.Split(profileContent, "\n") {
 		if !strings.Contains(line, ":") {
 			continue
 		}
 		opt := strings.SplitN(line, ":", 2)
-		if strings.TrimSpace(opt[0]) == "Qmake" {
-			qtToolsDir = filepath.Dir(strings.TrimSpace(opt[1]))
-			break
+		if strings.TrimSpace(strings.ToLower(opt[0])) == key {
+			return strings.TrimSpace(opt[1]), nil
 		}
 	}
-	if qtToolsDir == "" {
-		return errors.New("failed to locate Qt macdeployqt tool")
+	err = fmt.Errorf("%s not found in qamel profile", key)
+	return
+}
+
+// BuildBundle builds the redistributable application bundle
+func BuildBundle() error {
+	mg.SerialDeps(Clean, InstallDeps, Build)
+
+	// Create app bundle structure
+	os.MkdirAll("Cloaklet.app/Contents/MacOS", 0755)
+	os.Rename("Cloaklet", "Cloaklet.app/Contents/MacOS/Cloaklet")
+	sh.RunV("cp", "Info.plist", "Cloaklet.app/Contents/Info.plist")
+
+	// Get path of Qt tools directory from qamel profile
+	qtQmakePath, err := findInQamelProfile("Qmake")
+	if err != nil {
+		return err
 	}
+	qtToolsDir := filepath.Dir(qtQmakePath)
+
+	// Bundle linked Qt libraries
 	if err = sh.RunV(
 		filepath.Join(qtToolsDir, "macdeployqt"),
 		"Cloaklet.app",
@@ -102,5 +125,6 @@ func BuildBundle() error {
 		return err
 	}
 
+	// Bundle gocryptfs binary
 	return os.Rename("gocryptfs", "Cloaklet.app/Contents/MacOS/gocryptfs")
 }
