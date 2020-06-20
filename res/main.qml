@@ -170,7 +170,7 @@ ApplicationWindow {
                 font.weight: Font.Medium
                 font.pointSize: 13
                 text: model.name
-                width: parent.width
+                width: vaultList.width
                 icon.source: model.unlocked ? "qrc:/res/images/lock-unlock-fill.svg" : "qrc:/res/images/lock-fill.svg"
                 icon.height: font.pixelSize * 1.6
                 icon.width: font.pixelSize * 1.6
