@@ -3,13 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math/rand"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"syscall"
 	"time"
 
@@ -94,32 +93,33 @@ func (vm *VaultManager) unlockVault(vaultPath string, password string) int {
 
 	mountPoint := filepath.Join("/Volumes", strconv.FormatInt(int64(rand.Int31()), 16))
 
-	// Prepare password file
-	pwFile, err := ioutil.TempFile("", "")
-	if err != nil {
-		return 3
-	}
-	// TODO gocryptfs seems to be using passfile longer than we expected
-	// Just delay for several seconds before deleting it.
-	defer func() {
-		time.AfterFunc(time.Second*5, func() {
-			os.Remove(pwFile.Name())
-		})
-	}()
-
-	written, err := pwFile.Write([]byte(password))
-	defer pwFile.Close()
-	if written != len(password) || err != nil {
-		return 4
-	}
-
+	// Please refer to gocryptfs cmd ABI here:
+	// https://github.com/rfjakob/gocryptfs/blob/3b61244b72f74a25651d4ba184ac7cc62c937db0/Documentation/CLI_ABI.md#mount
 	args := []string{
 		"-fg",
-		"-passfile", pwFile.Name(),
+		"--",
 		vaultPath, mountPoint,
 	}
 	vm.processes[vaultPath] = exec.Command(vm.cmd, args...)
 	vm.mountpoints[vaultPath] = mountPoint
+	stdin, err := vm.processes[vaultPath].StdinPipe()
+	if err != nil {
+		logger.Error().
+			Err(err).
+			Str("vaultPath", vaultPath).
+			Msg("Failed to create STDIN pipe")
+		vm.alert("Failed to create STDIN pipe")
+		defer delete(vm.processes, vaultPath)
+		defer delete(vm.mountpoints, vaultPath)
+		return 2
+	}
+	go func() {
+		defer stdin.Close()
+		if _, err = io.WriteString(stdin, password); err != nil {
+			logger.Error().Err(err).Str("vaultPath", vaultPath).Msg("Failed to pipe password")
+			vm.alert("Failed to pipe password to gocryptfs")
+		}
+	}()
 	vm.processes[vaultPath].Start()
 	// Seems to be necessary, otherwise the process becomes zombie after exiting.
 	go func() {
@@ -128,11 +128,17 @@ func (vm *VaultManager) unlockVault(vaultPath string, password string) int {
 			defer delete(vm.processes, vaultPath)
 			rc := vm.processes[vaultPath].ProcessState.ExitCode()
 			logger.Debug().Int("RC", rc).Msg("gocryptfs exited")
-			if rc == 12 {
+			switch rc {
+			case 10:
+				vm.alert("Mountpoint not empty")
+			case 12:
 				vm.alert("Password incorrect")
-			} else if rc == 15 {
+			case 23:
+				vm.alert("Could not open gocryptfs.conf")
+			case 15:
 				// gocryptfs interrupted by SIGINT, which means we locked this vault
-			} else {
+				break
+			default:
 				vm.alert(fmt.Sprintf("gocryptfs exited unexpectedly (code %d)", rc))
 			}
 			defer vm.vaultLocked(vaultPath)
@@ -211,34 +217,53 @@ func (vm *VaultManager) createNewVault(name string, location string, password st
 			return 5
 		}
 	}
-	// Prepare password file
-	pwFile, err := ioutil.TempFile("", "")
-	if err != nil {
-		return 2
-	}
-	defer os.Remove(pwFile.Name())
 
-	written, err := pwFile.Write([]byte(password))
-	defer pwFile.Close()
-	if written != len(password) || err != nil {
-		return 3
-	}
-
+	// Please refer to gocryptfs cmd ABI here:
+	// https://github.com/rfjakob/gocryptfs/blob/3b61244b72f74a25651d4ba184ac7cc62c937db0/Documentation/CLI_ABI.md#initialize-filesystem
 	args := []string{
 		"-init",
-		"-passfile", pwFile.Name(),
+		"--",
 		vaultDirectory,
 	}
-	fmt.Printf("%s %s", vm.cmd, strings.Join(args, " "))
+	// Init an empty vault should be a relatively fast task, limiting to 10 seconds
 	ctx, cancel := context.WithTimeout(context.TODO(), time.Second*10)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, vm.cmd, args...)
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		logger.Error().
+			Err(err).
+			Str("vaultDirectory", vaultDirectory).
+			Msg("Failed to create STDIN pipe")
+		vm.alert("Failed to create STDIN pipe")
+		return 2
+	}
+
+	go func() {
+		defer stdin.Close()
+		if _, err := io.WriteString(stdin, password); err != nil {
+			logger.Error().
+				Err(err).
+				Str("vaultDirectory", vaultDirectory).
+				Msg("Failed to pipe password")
+			vm.alert("Failed to pipe password to gocryptfs")
+		}
+	}()
+
 	if err := cmd.Run(); err != nil {
 		logger.Error().
 			Err(err).
 			Str("vaultDirectory", vaultDirectory).
 			Int("returnCode", cmd.ProcessState.ExitCode()).
 			Msg("gocryptfs process exited with error")
+		switch cmd.ProcessState.ExitCode() {
+		case 6:
+			vm.alert(fmt.Sprintf("%s is not an empty directory", vaultDirectory))
+		case 22:
+			vm.alert("Password is empty")
+		case 24:
+			vm.alert("Could not create gocryptfs.conf")
+		}
 		return 4
 	}
 	return 0
