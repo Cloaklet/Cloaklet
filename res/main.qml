@@ -403,7 +403,7 @@ ApplicationWindow {
                         openDB().transaction(function(tx){
                             var path = location+"/"+name
                             tx.executeSql(`INSERT INTO vaults VALUES (?, ?, ?)`, [name, path, JSON.stringify({})])
-                            vaultListModel.append({name: name, path: path, mount_options: "{}", unlocked: false, mountpoint: ""})
+                            vaultListModel.append({name: name, path: path, mount_options: {}, unlocked: false, mountpoint: ""})
                             console.log("Vault created:", path)
 
                             // Reset form
@@ -443,7 +443,7 @@ ApplicationWindow {
             var dirname = path.slice(path.lastIndexOf("/") + 1)
             openDB().transaction(function(tx){
                 tx.executeSql(`INSERT INTO vaults VALUES (?, ?, ?)`, [dirname, path, JSON.stringify({})])
-                vaultListModel.append({name: dirname, path: path, mount_options: "{}", unlocked: false, mountpoint: ""})
+                vaultListModel.append({name: dirname, path: path, mount_options: {}, unlocked: false, mountpoint: ""})
                 console.log("Loaded vault from:", path)
                 addVaultDialog.close()
             })
