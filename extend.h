@@ -29,6 +29,8 @@ extern "C" {
 
 void MousePos_RegisterQML(char* uri, int versionMajor, int versionMinor, char* qmlName);
 
+void LoadFonts();
+
 #ifdef __cplusplus
 }
 #endif

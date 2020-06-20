@@ -1,7 +1,7 @@
 package main
 
 // #include <stdlib.h>
-// #include "pos.h"
+// #include "extend.h"
 import "C"
 import "unsafe"
 
@@ -17,4 +17,11 @@ func RegisterQmlMousePos(uri string, versionMajor int, versionMinor int, qmlName
 	}()
 
 	C.MousePos_RegisterQML(cURI, cVersionMajor, cVersionMinor, cQmlName)
+}
+
+// LoadFonts set OpenSans as application font family
+// It loads OpenSans font files from QRC resource bundle and registers them to Qt font database,
+// Then set it as global application font.
+func LoadFonts() {
+	C.LoadFonts()
 }

@@ -22,6 +22,7 @@ func init() {
 func main() {
 	app := qamel.NewApplication(len(os.Args), os.Args)
 	app.SetApplicationDisplayName("Cloaklet")
+	LoadFonts()
 
 	engine := qamel.NewEngine()
 	engine.Load("qrc:/res/main.qml")
