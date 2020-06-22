@@ -474,7 +474,14 @@ ApplicationWindow {
             Platform.MenuSeparator {}
             Platform.MenuItem {
                 text: qsTr("Quit")
-                onTriggered: Qt.quit()
+                onTriggered: {
+                    var rc = vaultManager.lockAllVaults()
+                    if (rc === 0) {
+                        Qt.quit()
+                    } else {
+                        showAlert(qsTr("Failed to lock all vaults: code %1").arg(rc))
+                    }
+                }
             }
         }
     }

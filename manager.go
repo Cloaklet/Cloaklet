@@ -27,6 +27,7 @@ import (
   - revealVault(vaultPath)
   - revealMountPoint(vaultPath)
   - createNewVault(name, location, password)
+  - lockAllVaults()
   Properties:
   - fuseAvailable <bool>
 */
@@ -38,6 +39,7 @@ type VaultManager struct {
 	_           func(string)                     `slot:"revealVault"`
 	_           func(string)                     `slot:"revealMountPoint"`
 	_           func(string, string, string) int `slot:"createNewVault"`
+	_           func() int                       `slot:"lockAllVaults"`
 	_           bool                             `property:"fuseAvailable"`
 	_           func(string, string)             `signal:"vaultUnlocked"`
 	_           func(string)                     `signal:"vaultLocked"`
@@ -267,4 +269,17 @@ func (vm *VaultManager) createNewVault(name string, location string, password st
 		return 4
 	}
 	return 0
+}
+
+// localAllVaults locks all vaults, making the application ready to quit
+func (vm *VaultManager) lockAllVaults() int {
+	lockRc := 0
+	for vaultPath, _ := range vm.processes {
+		rc := vm.lockVault(vaultPath)
+		if rc != 0 && lockRc == 0 {
+			lockRc = rc
+		}
+	}
+	lockRc = 1
+	return lockRc
 }
