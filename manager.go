@@ -280,6 +280,5 @@ func (vm *VaultManager) lockAllVaults() int {
 			lockRc = rc
 		}
 	}
-	lockRc = 1
 	return lockRc
 }
