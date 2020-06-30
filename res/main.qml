@@ -65,12 +65,18 @@ ApplicationWindow {
     function showAlert(msg) {
         alertMessageText.text = msg
     }
+    Dialogs.MessageDialog {
+        id: missingFuseDialog
+        title: qsTr("Missing OSXFUSE")
+        visible: false
+        text: qsTr("OSXFUSE is required, please download and install it.\n\nWe'll open the official website for you.")
+        onAccepted: {
+            Qt.openUrlExternally("https://osxfuse.github.io/")
+        }
+    }
     Component.onCompleted: {
         if (!vaultManager.fuseAvailable) {
-            showAlert(qsTr("OSXFUSE is required: https://osxfuse.github.io/"))
-            alertTimeout.stop()
-        } else {
-            showAlert(qsTr("Ready"))
+            missingFuseDialog.open()
         }
     }
 
