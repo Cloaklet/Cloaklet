@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -33,17 +34,17 @@ import (
 */
 type VaultManager struct {
 	qamel.QmlObject
-	_           func()                           `constructor:"init"`
-	_           func(string, string) int         `slot:"unlockVault"`
-	_           func(string) int                 `slot:"lockVault"`
-	_           func(string)                     `slot:"revealVault"`
-	_           func(string)                     `slot:"revealMountPoint"`
-	_           func(string, string, string) int `slot:"createNewVault"`
-	_           func() int                       `slot:"lockAllVaults"`
-	_           bool                             `property:"fuseAvailable"`
-	_           func(string, string)             `signal:"vaultUnlocked"`
-	_           func(string)                     `signal:"vaultLocked"`
-	_           func(string)                     `signal:"alert"`
+	_           func()                                 `constructor:"init"`
+	_           func(string, string, string, bool) int `slot:"unlockVault"`
+	_           func(string) int                       `slot:"lockVault"`
+	_           func(string)                           `slot:"revealVault"`
+	_           func(string)                           `slot:"revealMountPoint"`
+	_           func(string, string, string) int       `slot:"createNewVault"`
+	_           func() int                             `slot:"lockAllVaults"`
+	_           bool                                   `property:"fuseAvailable"`
+	_           func(string, string)                   `signal:"vaultUnlocked"`
+	_           func(string)                           `signal:"vaultLocked"`
+	_           func(string)                           `signal:"alert"`
 	processes   map[string]*exec.Cmd
 	mountpoints map[string]string
 	cmd         string // Path to `gocryptfs` binary
@@ -84,7 +85,9 @@ func (vm *VaultManager) init() {
 // unlockVault starts a gocryptfs process to unlock and mount the given vault.
 // The vault will be mounted to a path with random directory name.
 // Return code 0 means ok.
-func (vm *VaultManager) unlockVault(vaultPath string, password string) int {
+func (vm *VaultManager) unlockVault(
+	vaultPath string, password string, mountPoint string, readOnly bool,
+) int {
 	if cmd, ok := vm.processes[vaultPath]; ok {
 		// Existing process will return <nil> to SIG0
 		if err := cmd.Process.Signal(syscall.Signal(0)); err == nil {
@@ -93,15 +96,18 @@ func (vm *VaultManager) unlockVault(vaultPath string, password string) int {
 		}
 	}
 
-	mountPoint := filepath.Join("/Volumes", strconv.FormatInt(int64(rand.Int31()), 16))
+	if strings.TrimSpace(mountPoint) == "" {
+		mountPoint = filepath.Join("/Volumes", strconv.FormatInt(int64(rand.Int31()), 16))
+	}
 
 	// Please refer to gocryptfs cmd ABI here:
 	// https://github.com/rfjakob/gocryptfs/blob/3b61244b72f74a25651d4ba184ac7cc62c937db0/Documentation/CLI_ABI.md#mount
-	args := []string{
-		"-fg",
-		"--",
-		vaultPath, mountPoint,
+	args := []string{"-fg"}
+	if readOnly {
+		args = append(args, "-ro")
 	}
+	args = append(args, "--", vaultPath, mountPoint)
+
 	vm.processes[vaultPath] = exec.Command(vm.cmd, args...)
 	vm.mountpoints[vaultPath] = mountPoint
 	stdin, err := vm.processes[vaultPath].StdinPipe()

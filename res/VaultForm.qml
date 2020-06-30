@@ -20,7 +20,7 @@ Page {
     property var vault: ({})
     function unlockVault(password) {
         // TODO Failure notification
-        var unlockRC = vaultManager.unlockVault(vault.path, password)
+        var unlockRC = vaultManager.unlockVault(vault.path, password, vault.mount_options.mountpoint || "", !!vault.mount_options.readonly)
         if (unlockRC !== 0) {
             console.error("Unlock failed: RC=", unlockRC)
         }
